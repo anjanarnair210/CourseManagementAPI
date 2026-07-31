@@ -242,6 +242,133 @@ namespace CourseManagementAPI.Repository
                 cmd.ExecuteNonQuery();
                 con.Close();
             }
+
+        }
+        public List<User> SearchUsers(UserSearchRequest request)
+        {
+            List<User> users = new List<User>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"SELECT * FROM Users WHERE 1=1";
+
+                // Global Search
+                if (!string.IsNullOrWhiteSpace(request.Search))
+                {
+                    query += @" AND (
+                            FirstName LIKE @Search OR
+                            LastName LIKE @Search OR
+                            Email LIKE @Search OR
+                            PhoneNumber LIKE @Search OR
+                            UserRole LIKE @Search
+                        )";
+                }
+
+                // Department Filter
+                if (request.DepartmentId.HasValue)
+                {
+                    query += " AND DepartmentId = @DepartmentId";
+                }
+
+                // Role Filter
+                if (!string.IsNullOrWhiteSpace(request.Role))
+                {
+                    query += " AND UserRole = @Role";
+                }
+
+                // Status Filter
+                if (!string.IsNullOrWhiteSpace(request.Status))
+                {
+                    query += " AND Status = @Status";
+                }
+
+                // Sorting
+                if (!string.IsNullOrWhiteSpace(request.SortBy))
+                {
+                    switch (request.SortBy.ToLower())
+                    {
+                        case "firstname":
+                            query += " ORDER BY FirstName";
+                            break;
+
+                        case "email":
+                            query += " ORDER BY Email";
+                            break;
+
+                        case "phonenumber":
+                            query += " ORDER BY PhoneNumber";
+                            break;
+
+                        case "registereddate":
+                            query += " ORDER BY RegisteredDate";
+                            break;
+
+                        default:
+                            query += " ORDER BY UserId";
+                            break;
+                    }
+                }
+                else
+                {
+                    query += " ORDER BY UserId";
+                }
+
+                // Ascending / Descending
+                query += request.Ascending ? " ASC" : " DESC";
+
+                // Pagination
+                query += " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", "%" + (request.Search ?? "") + "%");
+
+                if (request.DepartmentId.HasValue)
+                    cmd.Parameters.AddWithValue("@DepartmentId", request.DepartmentId.Value);
+
+                if (!string.IsNullOrWhiteSpace(request.Role))
+                    cmd.Parameters.AddWithValue("@Role", request.Role);
+
+                if (!string.IsNullOrWhiteSpace(request.Status))
+                    cmd.Parameters.AddWithValue("@Status", request.Status);
+
+                cmd.Parameters.AddWithValue("@Offset", (request.Page - 1) * request.PageSize);
+                cmd.Parameters.AddWithValue("@PageSize", request.PageSize);
+
+                con.Open();
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    User user = new User
+                    {
+                        UserId = Convert.ToInt32(reader["UserId"]),
+                        FirstName = reader["FirstName"].ToString()!,
+                        LastName = reader["LastName"].ToString()!,
+                        Email = reader["Email"].ToString()!,
+                        PhoneNumber = reader["PhoneNumber"].ToString()!,
+                        DepartmentId = Convert.ToInt32(reader["DepartmentId"]),
+                        UserRole = reader["UserRole"].ToString()!,
+                        Password = reader["Password"].ToString()!,
+                        RegisteredDate = Convert.ToDateTime(reader["RegisteredDate"]),
+                        Status = reader["Status"].ToString()!,
+                        ModifiedBy = reader["ModifiedBy"].ToString()!,
+                        ModifiedAt = Convert.ToDateTime(reader["ModifiedAt"]),
+                        CreatedBy = reader["CreatedBy"].ToString()!,
+                        CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                        IsInAdvance = Convert.ToBoolean(reader["IsInAdvance"]),
+                        IsActive = Convert.ToBoolean(reader["IsActive"]),
+                        Age = Convert.ToInt32(reader["Age"])
+                    };
+
+                    users.Add(user);
+                }
+
+                con.Close();
+            }
+
+            return users;
         }
     }
 }

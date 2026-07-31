@@ -13,5 +13,7 @@ namespace CourseManagementAPI.interfaces
         void UpdateUser(User user);
 
         void DeleteUser(int id);
+
+        List<User> SearchUsers(UserSearchRequest request);
     }
 }

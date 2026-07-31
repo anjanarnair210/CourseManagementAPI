@@ -36,5 +36,10 @@ namespace CourseManagementAPI.services
         {
             _userRepository.DeleteUser(id);
         }
+
+        public List<User> SearchUsers(UserSearchRequest request)
+        {
+            return _userRepository.SearchUsers(request);
+        }
     }
 }
