@@ -1,5 +1,6 @@
 ﻿using CourseManagementAPI.models;
 using CourseManagementAPI.services;
+using CourseManagementAPI.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CourseManagementAPI.Controllers
@@ -59,54 +60,96 @@ namespace CourseManagementAPI.Controllers
         /// <summary>
         /// Creates a new course.
         /// </summary>
-        /// <param name="course">The course details to be created.</param>
+        /// <param name="courseDto">The course details to be created.</param>
         /// <returns>Returns 201 Created if the course is added successfully.</returns>
         [HttpPost]
-        public IActionResult AddCourse(Course course)
+        public IActionResult AddCourse(CourseDto courseDto)
         {
-            if (course == null)
-                return BadRequest(); // 400 Bad Request
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             try
             {
+                Course course = new Course
+                {
+                    Name = courseDto.Name,
+                    Description = courseDto.Description,
+                    DepartmentId = courseDto.DepartmentId,
+                    Duration = courseDto.Duration,
+                    StartOfCourse = courseDto.StartOfCourse,
+                    EndOfCourse = courseDto.EndOfCourse,
+                    Status = courseDto.Status,
+                    IsActive = courseDto.IsActive,
+
+                    Fees = courseDto.Fees,
+                    PriceOfCourse = courseDto.Fees ?? 0,
+
+                    UserId = 1,
+                    CreatedBy = "Admin",
+                    CreatedAt = DateTime.Now,
+                    ModifiedBy = "Admin",
+                    ModifiedAt = DateTime.Now
+                };
+
                 _courseService.AddCourse(course);
 
-                return CreatedAtAction(
-                    nameof(GetCourseById),
-                    new { id = course.CourseId },
-                    course); // 201 Created
+                return CreatedAtAction(nameof(GetCourseById),
+                    new { id = course.CourseId }, course);
             }
             catch (Exception)
             {
                 return StatusCode(500, "An error occurred while creating the course.");
             }
         }
-
         /// <summary>
         /// Updates an existing course.
         /// </summary>
         /// <param name="id">The ID of the course to update.</param>
-        /// <param name="course">The updated course details.</param>
+        /// <param name="courseDto">The updated course details.</param>
         /// <returns>Returns 204 No Content if the update is successful.</returns>
         [HttpPut("{id}")]
-        public IActionResult UpdateCourse(int id, Course course)
+        public IActionResult UpdateCourse(int id, CourseDto courseDto)
         {
-            if (course == null)
-                return BadRequest(); // 400 Bad Request
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             try
             {
-                course.CourseId = id;
+                Course course = new Course
+                {
+                    CourseId = id,
+                    Name = courseDto.Name,
+                    Description = courseDto.Description,
+                    DepartmentId = courseDto.DepartmentId,
+                    Duration = courseDto.Duration,
+                    StartOfCourse = courseDto.StartOfCourse,
+                    EndOfCourse = courseDto.EndOfCourse,
+                    Status = courseDto.Status,
+                    IsActive = courseDto.IsActive,
+
+                    Fees = courseDto.Fees,
+                    PriceOfCourse = courseDto.Fees ?? 0,
+
+                    UserId = 1,
+                    CreatedBy = "Admin",
+                    CreatedAt = DateTime.Now,
+                    ModifiedBy = "Admin",
+                    ModifiedAt = DateTime.Now
+                };
+
                 _courseService.UpdateCourse(course);
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (Exception)
             {
                 return StatusCode(500, "An error occurred while updating the course.");
             }
         }
-
         /// <summary>
         /// Deletes a course by its unique ID.
         /// </summary>
