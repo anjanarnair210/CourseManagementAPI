@@ -1,4 +1,5 @@
-﻿using CourseManagementAPI.models;
+﻿using CourseManagementAPI.DTOs;
+using CourseManagementAPI.models;
 using CourseManagementAPI.services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -55,35 +56,80 @@ namespace CourseManagementAPI.Controllers
         /// Creates a new user.
         /// </summary>
         /// <param name="user">User details.</param>
+        
         [HttpPost]
-        public IActionResult AddUser(User user)
+        public IActionResult AddUser(UserDto userDto)
         {
-            if (user == null)
-                return BadRequest();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            User user = new User
+            {
+                FirstName = userDto.FirstName,
+                LastName = userDto.LastName,
+                Email = userDto.Email,
+                PhoneNumber = userDto.PhoneNumber,
+                DepartmentId = userDto.DepartmentId,
+                UserRole = userDto.UserRole,
+                Password = userDto.Password,
+                Age = userDto.Age,
+                Status = userDto.Status,
+                IsInAdvance = userDto.IsInAdvance,
+                IsActive = userDto.IsActive,
+
+                RegisteredDate = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                ModifiedAt = DateTime.Now,
+                CreatedBy = "Admin",
+                ModifiedBy = "Admin"
+            };
 
             _userService.AddUser(user);
 
             return CreatedAtAction(nameof(GetUserById),
                 new { id = user.UserId }, user);
         }
-
         /// <summary>
         /// Updates an existing user.
         /// </summary>
         /// <param name="id">User ID.</param>
-        /// <param name="user">Updated user details.</param>
+        /// <param name="userDto">Updated user details.</param>
         [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, User user)
+        public IActionResult UpdateUser(int id, UserDto userDto)
         {
-            if (user == null)
-                return BadRequest();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            user.UserId = id;
+            User user = new User
+            {
+                UserId = id,
+                FirstName = userDto.FirstName,
+                LastName = userDto.LastName,
+                Email = userDto.Email,
+                PhoneNumber = userDto.PhoneNumber,
+                DepartmentId = userDto.DepartmentId,
+                UserRole = userDto.UserRole,
+                Password = userDto.Password,
+                Age = userDto.Age,
+                Status = userDto.Status,
+                IsInAdvance = userDto.IsInAdvance,
+                IsActive = userDto.IsActive,
+
+                RegisteredDate = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                ModifiedAt = DateTime.Now,
+                CreatedBy = "Admin",
+                ModifiedBy = "Admin"
+            };
+
             _userService.UpdateUser(user);
 
             return NoContent();
         }
-
         /// <summary>
         /// Deletes a user by its unique ID.
         /// </summary>
